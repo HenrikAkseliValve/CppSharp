@@ -12,7 +12,16 @@ namespace CppSharp.AST
         public List<string> Defines { get; } = new List<string>();
         public List<string> Undefines { get; } = new List<string>();
         public string OutputNamespace { get; set; }
-        public List<TranslationUnit> Units { get; } = new List<TranslationUnit>();
+        
+        /// <summary>
+        /// After modules translation units are compilated holds the ASTContext of them.
+        /// </summary>
+        public ASTContext Context { get; set; }
+
+        /// <summary>
+        /// List of translation units of this module.
+        /// </summary>
+        public List<TranslationUnit> Units { get => Context.TranslationUnits; }
         public List<string> CodeFiles { get; } = new List<string>();
         public List<string> ReferencedAssemblies { get; } = new List<string>();
         public List<Module> Dependencies { get; } = new List<Module>();

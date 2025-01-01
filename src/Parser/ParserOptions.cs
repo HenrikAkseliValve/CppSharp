@@ -112,6 +112,44 @@ namespace CppSharp.Parser
             }
         }
 
+        /// <summary>
+        /// Clone the ParseOptions from old one. It is more then shallow copy but not full deep copy.
+        /// </summary>
+        public ParserOptions Clone()
+        {
+            // Do a shallow copy first and then IncludeDirs, Defines, and Undefines are deep copied.
+            var cpy = (ParserOptions)this.MemberwiseClone();
+            cpy.IncludeDirs = cpy.IncludeDirs.ToList();
+            cpy.Defines = cpy.Defines.ToList();
+            cpy.Undefines = cpy.Undefines.ToList();
+
+            return cpy;
+        }
+
+        /// <summary>
+        /// Setup parser options based upon module.
+        /// </summary>
+        /// <param name="module"></param>
+        public void AddFromModule(CppSharp.AST.Module module)
+        {
+            // This eventually gets passed to Clang's MSCompatibilityVersion, which
+            // is in turn used to derive the value of the built-in define _MSC_VER.
+            // It used to receive a 4-digit based identifier but now expects a full
+            // version MSVC digit, so check if we still have the old version and
+            // convert to the right format.
+
+            if (ToolSetToUse.ToString(CultureInfo.InvariantCulture).Length == 4)
+                ToolSetToUse *= 100000;
+
+            // Clear options just incase there
+            foreach (var include in module.IncludeDirs)
+                AddIncludeDirs(include);
+            foreach (var define in module.Defines)
+                AddDefines(define);
+            foreach (var undefine in module.Undefines)
+                AddUndefines(undefine);
+        }
+
         public void SetupMSVC()
         {
             var vsVersion = VisualStudioVersion.Latest;

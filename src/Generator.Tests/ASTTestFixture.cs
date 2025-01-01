@@ -59,7 +59,6 @@ namespace CppSharp.Generator.Tests
 
             Driver.SetupTypeMaps();
             AstContext = Driver.Context.ASTContext;
-            new CleanUnitPass { Context = Driver.Context }.VisitASTContext(AstContext);
             new ResolveIncompleteDeclsPass { Context = Driver.Context }.VisitASTContext(AstContext);
 
             Context = new BindingContext(options, Driver.ParserOptions);

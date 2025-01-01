@@ -81,7 +81,7 @@
                        << message;         \
              call;                         \
          }                                 \
-   } while (0)
+    } while (0)
 
 // Internals of assertml with or without abort.
 #define _assertml(condition, message, sm, loc, call)      \
@@ -209,7 +209,7 @@ void Parser::ReadClassLayout(Class* Class, const clang::RecordDecl* RD,
         // Collect nvbases.
         SmallVector<const CXXRecordDecl *, 4> Bases;
         for (const CXXBaseSpecifier &Base : CXXRD->bases()) {
-          assertm(!Base.getType()->isDependentType(),"Cannot layout class with dependent bases.\n");
+            assertm(!Base.getType()->isDependentType(),"Cannot layout class with dependent bases.\n");
             
             if (!Base.isVirtual())
                 Bases.push_back(Base.getType()->getAsCXXRecordDecl());
@@ -959,6 +959,9 @@ static clang::CXXRecordDecl* GetCXXRecordDeclFromBaseType(const clang::ASTContex
         return GetCXXRecordDeclFromTemplateName(TST->getTemplateName());
     else if (auto Injected = Ty->getAs<clang::InjectedClassNameType>())
         return Injected->getDecl();
+    /*else if (auto TTP = Ty->getAs<clang::TemplateTypeParmType>())
+        return TTP->getAsCXXRecordDecl();
+    */
 
     assertml(0, "Could not get base CXX record from type. Unhandled type: ", context.getSourceManager(), base.getBeginLoc());
 

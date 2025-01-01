@@ -123,14 +123,27 @@ namespace CppSharp
         {
             ClangParser.SourcesParsed += OnSourceFileParsed;
 
-            var sourceFiles = Options.Modules.SelectMany(m => m.Headers);
+            // Create ASTContext that is cross every module.
+            Context.ASTContext = new ASTContext();
 
-            ParserOptions.BuildForSourceFile(Options.Modules);
-            using (ParserResult result = ClangParser.ParseSourceFiles(
-                sourceFiles, ParserOptions))
-                Context.TargetInfo = result.TargetInfo;
+            foreach (var module in Options.Modules.Where(module => module.Headers.Count > 0))
+            {
+                ParserOptions modulesoptions = ParserOptions.Clone();
+                modulesoptions.AddFromModule(module);
 
-            Context.ASTContext = ClangParser.ConvertASTContext(ParserOptions.ASTContext);
+                using (ParserResult result = ClangParser.ParseSourceFiles(module.Headers, modulesoptions))
+                    Context.TargetInfo = result.TargetInfo;
+
+                module.Context = ClangParser.ConvertASTContext(modulesoptions.ASTContext);
+                Context.ASTContext.TranslationUnits.AddRange(module.Context.TranslationUnits);
+
+                // Set module for each translation unit.
+                foreach(var unit in module.Context.TranslationUnits)
+                {
+                    if (unit.IsSystemHeader) unit.Module = Options.SystemModule;
+                    else unit.Module = module;
+                }
+            }
 
             ClangParser.SourcesParsed -= OnSourceFileParsed;
 
@@ -416,7 +429,7 @@ namespace CppSharp
                 return false;
             }
 
-            new CleanUnitPass { Context = driver.Context }.VisitASTContext(driver.Context.ASTContext);
+            // Remove every module which has no translation units to use in code generation.
             options.Modules.RemoveAll(m =>
             {
                 bool result = m != options.SystemModule && !m.Units.GetGenerated().Any();
